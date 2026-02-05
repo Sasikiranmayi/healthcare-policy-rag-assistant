@@ -43,8 +43,12 @@ cd healthcare-policy-rag-assistant
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate     # macOS / Linux
-.venv\Scripts\activate        # Windows
+
+# macOS / Linux
+source .venv/bin/activate     
+
+# Windows
+.venv\Scripts\activate        
 ```
 
 ### **3. Install Dependencies**
@@ -71,6 +75,13 @@ Launch the browser-based UI:
 streamlit run app.py
 ```
 The system is deliberately **modular**, so the same RAG core can later be exposed via FastAPI without refactoring.
+
+### Run with Docker
+
+```bash
+docker build -t healthcare-policy-rag-assistant .
+docker run --rm -p 8501:8501 -e OPENAI_API_KEY="YOUR_KEY" healthcare-policy-rag-assistant
+```
 
 ### 🧪 Testing & Quality Assurance
 
@@ -99,7 +110,7 @@ healthcare-policy-rag-assistant/
 ├── tests/
 │   └── test_rag.py
 ├── requirements.txt
-├── .env    
+├── .env.example    
 └── README.md
 ```
 
