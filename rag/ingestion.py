@@ -39,11 +39,16 @@ class DocumentIngestion:
         all_documents = []
 
         for ext, loader_cls in self.loaders.items():
+            loader_kwargs = {}
+            if loader_cls is TextLoader:
+                # This is to avoid decoding errors on common UTF-8 markdown files
+                loader_kwargs["encoding"] = "utf-8"
             # Use DirectoryLoader to recursively find and load files of a specific type
             loader = DirectoryLoader(
                 path=self.directory_path,
                 glob=f"**/*{ext}",
                 loader_cls=loader_cls,
+                loader_kwargs=loader_kwargs,
                 show_progress=True,
                 use_multithreading=True  # Optimizes loading for larger collections
             )
