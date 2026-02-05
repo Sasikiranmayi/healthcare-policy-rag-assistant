@@ -1,5 +1,6 @@
-# Healthcare Policy RAG Assistant
-![Python Version](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python) 
+# NHS Operational Planning RAG Assistant
+![Python Version](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python) ![Framework](https://img.shields.io/badge/Framework-Streamlit-red)
+![RAG](https://img.shields.io/badge/Architecture-RAG-green)
 
 A lightweight **conversational RAG (Retrieval-Augmented Generation) assistant** for answering questions about **public healthcare policy guidance** (e.g., NHS operational planning priorities). The system ingests mixed document formats (PDF/Markdown), chunks and embeds them, indexes with **FAISS**, retrieves relevant context, and generates answers grounded in the retrieved sources.
 
