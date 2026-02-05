@@ -1,8 +1,6 @@
+import streamlit as st
 import os
-import logging
-from dotenv import load_dotenv
-from regex import template
-from rag import retriever
+from core.config import Settings
 from rag.ingestion import DocumentIngestion
 from rag.chunking import DocumentProcessor
 from rag.embeddings import EmbeddingManager
@@ -10,58 +8,110 @@ from rag.retriever import RetrievalService
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 
-# Configure Logging for Observability
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+st.set_page_config(page_title="Healthcare Planning Assistant", page_icon="🏥")
+st.title("🏥 Healthcare Operational Planning Chatbot")
+
+settings = Settings()
+
+FAISS_DIR = "./faiss_index"
+FAISS_FILES = [os.path.join(FAISS_DIR, "index.faiss"),
+               os.path.join(FAISS_DIR, "index.pkl")]
 
 
-def main():
-    load_dotenv()  # Load OpenAI API Key from .env
+def faiss_index_ready() -> bool:
+    return all(os.path.exists(p) for p in FAISS_FILES)
 
-    # 1. Ingestion & Chunking
-    loader = DocumentIngestion(directory_path="./data/docs")
-    processor = DocumentProcessor(chunk_size=1000, chunk_overlap=200)
 
-    logger.info("Starting ingestion...")
+@st.cache_resource
+def initialize_rag():
+    # 1. Load and Process documents
+    loader = DocumentIngestion(directory_path=settings.DOCS_PATH)
+    processor = DocumentProcessor(
+        chunk_size=settings.CHUNK_SIZE, chunk_overlap=settings.CHUNK_OVERLAP)
+
     raw_docs = loader.load()
     chunks = processor.process(raw_docs)
 
-    # 2. Embedding & Retrieval Setup
-    embedding_manager = EmbeddingManager()
-    embedding_function = embedding_manager.get_embeddings()
-    retriever_service = RetrievalService(embedding_function=embedding_function)
+    # 2. Setup Vector Store (FAISS + HuggingFace)
+    embed_manager = EmbeddingManager()
+    retrieval_service = RetrievalService(
+        embedding_function=embed_manager.get_embeddings(),
+        index_path=FAISS_DIR
+    )
 
-    # 3. Add to Vector DB (Only need to do this once if persistent)
-    retriever_service.add_documents(chunks)
-    retriever = retriever_service.get_retriever(k=5)
-    # Retrieve relevant documents
-    retrieved_docs = retriever.invoke(query)
+    # Build index only if missing
+    if not faiss_index_ready():
+        retrieval_service.add_documents(chunks)
 
-    # Build text context
-    context = "\n\n".join(d.page_content for d in retrieved_docs)
+    retriever = retrieval_service.get_retriever(k=4)
 
-    # 4. RAG Chain Construction
     template = """
-        You are an AI assistant that helps answer questions based on the following context {context} from a collection of documents.
-        Use the provided context to answer the question as accurately as possible. If the context does not contain the answer, say you don't know.
+        You are a healthcare policy and public guidance assistant.
+        Answer ONLY using the provided Context.
+        If the Context does not contain the answer, say you cannot find it in the provided sources.
+        Do NOT provide medical diagnosis or treatment advice.
+
+        Conversation (recent):
+        {history}
+
+        Context:
+        {context}
+
         Question: {question}
+        Answer:
     """
-
     prompt = ChatPromptTemplate.from_template(template)
-    llm = ChatOpenAI(model_name="gpt-4o", temperature=0)
-    llm_chain = prompt | llm
-    # qa_chain = RetrievalQA.from_chain_type(
-    #     llm=llm,
-    #     chain_type="stuff",  # "Stuffs" all retrieved context into the prompt
-    #     retriever=retriever_service.get_retriever()
-    # )
+    llm = ChatOpenAI(model_name="gpt-4.1-mini", temperature=0)
+    chain = prompt | llm
 
-    # Example Query
-    query = "Summarize the key strategic goals mentioned in the documents."
-    response = llm_chain.invoke({"context": context, "question": query})
-    print(f"\nAI Response: {response.content}")
+    return retriever, chain
 
 
-if __name__ == "__main__":
-    main()
+retriever, chain = initialize_rag()
+
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+user_input = st.chat_input("Ask about healthcare policy...")
+
+if user_input:
+    st.session_state.messages.append({"role": "user", "content": user_input})
+    with st.chat_message("user"):
+        st.markdown(user_input)
+
+    with st.chat_message("assistant"):
+        # Retrieve context
+        retrieved_docs = retriever.invoke(user_input)
+        context = "\n\n".join(d.page_content for d in retrieved_docs)
+
+        # Build recent history (last 6 messages)
+        recent = st.session_state.messages[-6:]
+        history = "\n".join(
+            [f"{m['role'].upper()}: {m['content']}" for m in recent])
+
+        response = chain.invoke({
+            "history": history,
+            "context": context,
+            "question": user_input
+        })
+
+        st.markdown(response.content)
+
+        # Optional: show sources (helps trust + evaluation)
+        with st.expander("Sources"):
+            for d in retrieved_docs:
+                md = d.metadata or {}
+                source_file = md.get("source_file") or md.get(
+                    "source") or "unknown"
+                page = md.get("page") or md.get("page_number")
+                chunk_index = md.get("chunk_index")
+                st.write(
+                    f"- {source_file} | page={page} | chunk={chunk_index}")
+
+        st.session_state.messages.append(
+            {"role": "assistant", "content": response.content})
