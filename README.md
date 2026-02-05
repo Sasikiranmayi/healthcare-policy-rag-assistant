@@ -281,8 +281,6 @@ This project is intentionally scoped to demonstrate:
 
 - realistic production thinking
 
-- The emphasis is on how the system is designed and why, not on UI polish or feature volume.
-
 ---
 
 ## References / Data Sources
