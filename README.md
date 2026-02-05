@@ -29,7 +29,56 @@ This project is intentionally designed to be **simple, clean, and reproducible**
 
 ---
 
-## Project Structure
+## 🚀 Quick Start — Running the Project
+
+### **1. Clone the Repository**
+
+```bash
+git clone https://github.com/Sasikiranmayi/healthcare-policy-rag-assistant.git
+cd healthcare-policy-rag-assistant
+```
+
+### **2. Create and Activate Virtual Environment**
+
+```bash
+python -m venv .venv
+source .venv/bin/activate     # macOS / Linux
+.venv\Scripts\activate        # Windows
+```
+
+### **3. Install Dependencies**
+
+```bash
+pip install -r requirements.txt
+```
+
+### **4. Set Your Environment Variables**
+
+Create a `.env` file:
+
+```bash
+OPENAI_API_KEY=your_key_here
+LLM_MODEL=gpt-4.1-mini
+TEMPERATURE=0
+```
+The system is deliberately **modular**, so the same RAG core can later be exposed via FastAPI without refactoring.
+
+### Running the Application
+
+Launch the browser-based UI:
+
+```bash
+streamlit run app.py
+```
+### 🧪 Testing & Quality Assurance
+
+To ensure the reliability of the ingestion and retrieval pipeline, run the test suite:
+
+```bash
+python -m pytest tests/
+```
+
+## 📁 Project Structure
 
 ```text
 healthcare-policy-rag-assistant/
@@ -50,29 +99,6 @@ healthcare-policy-rag-assistant/
 ├── requirements.txt
 ├── .env    
 └── README.md
-
-
----
-
-## Setup
-
-### 1. Create and activate a virtual environment
-
-Recommended Python version: **3.11+**
-
-```bash
-python -m venv .venv
-# Windows
-.venv\Scripts\activate
-# macOS / Linux
-source .venv/bin/activate
-
-```env
-OPENAI_API_KEY=your_key_here
-LLM_MODEL=gpt-4.1-mini
-TEMPERATURE=0
-
-The system is deliberately **modular**, so the same RAG core can later be exposed via FastAPI without refactoring.
 
 ---
 
@@ -133,6 +159,12 @@ Because the domain is healthcare-related:
 
 ---
 
+## 📈 Roadmap & Future Enhancements
+Hybrid Search: Integrating BM25 keyword search alongside semantic vector search for better acronym handling.
+
+Source Citations: Adding UI-level citations pointing to specific page numbers in source PDFs.
+
+RAGAS Evaluation: Implementing automated evaluation for "Faithfulness" and "Answer Relevancy."
 
 
 
