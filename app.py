@@ -8,8 +8,8 @@ from rag.retriever import RetrievalService
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 
-st.set_page_config(page_title="Healthcare Planning Assistant", page_icon="🏥")
-st.title("🏥 Healthcare Operational Planning Chatbot")
+st.set_page_config(page_title="NHS Planning Assistant", page_icon="🏥")
+st.title("🏥 NHS Operational Planning Chatbot")
 
 settings = Settings()
 
@@ -46,7 +46,7 @@ def initialize_rag():
     retriever = retrieval_service.get_retriever(k=4)
 
     template = """
-        You are a healthcare policy and public guidance assistant.
+        You are a healthcare public guidance assistant.
         Answer ONLY using the provided Context.
         If the Context does not contain the answer, say you cannot find it in the provided sources.
         Do NOT provide medical diagnosis or treatment advice.
@@ -61,14 +61,13 @@ def initialize_rag():
         Answer:
     """
     prompt = ChatPromptTemplate.from_template(template)
-    llm = ChatOpenAI(model_name="gpt-4.1-mini", temperature=0)
+    llm = ChatOpenAI(model_name=settings.LLM_MODEL, temperature=0)
     chain = prompt | llm
 
     return retriever, chain
 
 
 retriever, chain = initialize_rag()
-
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -77,7 +76,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-user_input = st.chat_input("Ask about healthcare policy...")
+user_input = st.chat_input("Ask about NHS planning guidance...")
 
 if user_input:
     st.session_state.messages.append({"role": "user", "content": user_input})
@@ -85,11 +84,9 @@ if user_input:
         st.markdown(user_input)
 
     with st.chat_message("assistant"):
-        # Retrieve context
         retrieved_docs = retriever.invoke(user_input)
         context = "\n\n".join(d.page_content for d in retrieved_docs)
 
-        # Build recent history (last 6 messages)
         recent = st.session_state.messages[-6:]
         history = "\n".join(
             [f"{m['role'].upper()}: {m['content']}" for m in recent])
@@ -102,7 +99,6 @@ if user_input:
 
         st.markdown(response.content)
 
-        # Optional: show sources (helps trust + evaluation)
         with st.expander("Sources"):
             for d in retrieved_docs:
                 md = d.metadata or {}
