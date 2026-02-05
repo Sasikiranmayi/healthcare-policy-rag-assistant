@@ -161,12 +161,116 @@ Because the domain is healthcare-related:
 
 ---
 
+## Productionization & Scalability (AWS / GCP / Azure)
+
+To productionize this solution, the following would be required:
+
+### Infrastructure
+
+- Replace FAISS with a managed vector database:
+
+    - AWS OpenSearch / Pinecone / Weaviate
+
+- Deploy API layer using FastAPI behind:
+
+    - AWS ALB / API Gateway
+
+- Containerize using Docker
+
+- Deploy on ECS / EKS / GKE / Azure Container Apps
+
+### Data & Indexing
+
+- Separate offline ingestion pipeline (batch jobs)
+
+- Versioned document storage (S3 / GCS / Blob Storage)
+
+- Background re-indexing and deduplication
+
+### Scalability & Reliability
+
+- Stateless API with external vector DB
+
+- Horizontal scaling of inference layer
+
+- Rate limiting and request throttling
+
+- Caching frequent queries
+
+### Observability
+
+- Structured logging
+
+- Metrics for:
+
+    - retrieval latency
+
+    - embedding latency
+
+    - LLM latency
+
+- Tracing (OpenTelemetry)
+
+- LLM output monitoring
+
+---
+
+## Engineering Standards Followed (and Skipped)
+### Followed
+
+- Clear separation of concerns
+
+- Type hints where useful
+
+- Logging for key steps
+
+- Basic automated tests
+
+- Deterministic behavior
+
+### Skipped (Intentionally)
+
+- Full CI/CD pipeline
+
+- Distributed tracing
+
+- Advanced prompt templating frameworks
+
+- Multi-tenant support
+
+These were consciously skipped to stay within scope.
+
+---
+
 ## 📈 Roadmap & Future Enhancements
-Hybrid Search: Integrating BM25 keyword search alongside semantic vector search for better acronym handling.
+- Add FastAPI-based API layer
 
-Source Citations: Adding UI-level citations pointing to specific page numbers in source PDFs.
+- Add structured citations (page, section)
 
-RAGAS Evaluation: Implementing automated evaluation for "Faithfulness" and "Answer Relevancy."
+- Introduce reranking / MMR retrieval
 
+- Add evaluation harness (golden Q&A)
+
+- Improve document preprocessing (tables, sections)
+
+- Add async ingestion pipeline
+
+---
+
+## Final Note
+
+This project is intentionally scoped to demonstrate:
+
+- end-to-end RAG correctness
+
+- thoughtful engineering trade-offs
+
+- clean, maintainable code
+
+- realistic production thinking
+
+- The emphasis is on how the system is designed and why, not on UI polish or feature volume.
+
+---
 
 
