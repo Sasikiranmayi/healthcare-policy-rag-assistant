@@ -61,7 +61,6 @@ OPENAI_API_KEY=your_key_here
 LLM_MODEL=gpt-4.1-mini
 TEMPERATURE=0
 ```
-The system is deliberately **modular**, so the same RAG core can later be exposed via FastAPI without refactoring.
 
 ### Running the Application
 
@@ -70,6 +69,8 @@ Launch the browser-based UI:
 ```bash
 streamlit run app.py
 ```
+The system is deliberately **modular**, so the same RAG core can later be exposed via FastAPI without refactoring.
+
 ### 🧪 Testing & Quality Assurance
 
 To ensure the reliability of the ingestion and retrieval pipeline, run the test suite:
@@ -99,6 +100,7 @@ healthcare-policy-rag-assistant/
 ├── requirements.txt
 ├── .env    
 └── README.md
+```
 
 ---
 
